@@ -1,5 +1,4 @@
-/* Townie · The Daily Jersey Special
-   A daily New Jersey municipality guessing game. No build step, no deps. */
+/* Townie: guess the New Jersey town. No build step, no dependencies. */
 (() => {
   'use strict'
 
@@ -56,6 +55,7 @@
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
   }
   const proximity = (d) => Math.max(0, Math.round((1 - d / MAX_MILES) * 100))
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
   const ARROWS = ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️']
   const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
   const octant = (deg) => Math.round(deg / 45) % 8
@@ -157,14 +157,14 @@
 
   /* ── rendering: order rows ─────────────────────────────── */
   const arrowSvg = (deg) => `<svg viewBox="0 0 24 24" style="transform:rotate(${deg.toFixed(0)}deg)" aria-hidden="true"><path d="M12 3l5 9h-3.2v9h-3.6v-9H7z"/></svg>`
-  const starSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.7 5.9 6.4.7-4.8 4.3 1.3 6.3L12 16.8 6.4 20l1.3-6.3-4.8-4.3 6.4-.7z"/></svg>'
+  const starSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/></svg>'
 
   const rowFor = (gi, isNew) => {
     const li = el('li', 'row')
     const idx = game.guesses[gi]
     if (idx == null) {
       li.classList.add('empty')
-      li.innerHTML = `<span class="no">${gi + 1}</span><span class="item"><b>&nbsp;</b><small>&nbsp;</small></span><span class="leader"></span><span class="miles"></span><span class="dir"></span><span class="pct"></span>`
+      li.innerHTML = `<span class="no">${ROMAN[gi]}</span><span class="item"><b>&nbsp;</b><small>&nbsp;</small></span><span class="leader"></span><span class="miles"></span><span class="dir"></span><span class="pct"></span>`
       return li
     }
     const g = TOWNS[idx], a = TOWNS[game.answer]
@@ -176,8 +176,8 @@
     if (isNew) li.classList.add('new')
     const dist = win ? '0' : d < 10 ? d.toFixed(1) : Math.round(d)
     li.innerHTML =
-      `<span class="no">${gi + 1}</span>` +
-      `<span class="item"><b>${esc(g.s)}</b><small>${esc(g.t)} · ${esc(g.c)} Co.</small></span>` +
+      `<span class="no">${ROMAN[gi]}</span>` +
+      `<span class="item"><b>${esc(g.s)}</b><small>${esc(g.t)}, ${esc(g.c)} Co.</small></span>` +
       `<span class="leader"></span>` +
       `<span class="miles">${dist}<small>mi</small></span>` +
       `<span class="dir">${win ? starSvg : arrowSvg(deg)}</span>` +
@@ -198,8 +198,8 @@
     const misses = game.guesses.filter((g) => g !== game.answer).length
     if (store.settings.tips === 'off' || game.over || misses < 3) { tip.hidden = true; return }
     const a = TOWNS[game.answer]
-    let msg = `Psst, hon. It’s in <b>${esc(a.c)} County</b>.`
-    if (misses >= 5) msg += ` It’s a <b>${esc(a.t.toLowerCase())}</b> of about <b>${fmt(roundPop(a.p))}</b> people.`
+    let msg = `<span class="tip-label">Hint</span>${esc(a.c)} County.`
+    if (misses >= 5) msg += ` A ${esc(a.t.toLowerCase())} of about ${fmt(roundPop(a.p))} people.`
     tip.innerHTML = msg
     tip.hidden = false
   }
@@ -239,8 +239,9 @@
     r.hidden = false
     const a = TOWNS[game.answer]
     const n = game.guesses.length
-    const verdicts = ['Bullseye!', 'Order up!', 'Nice work!', 'You got it!', 'Phew!', 'Just in time!']
-    $('#reveal-verdict').textContent = game.won ? verdicts[n - 1] : 'Kitchen’s closed.'
+    $('#reveal-verdict').innerHTML = game.won
+      ? `<b>Opa!</b>${n === 1 ? 'First guess.' : `Got it in ${n}.`}`
+      : '<b>Out of guesses</b>The answer was'
     $('#reveal-name').textContent = a.s
     const best = game.guesses.filter((g) => g !== game.answer).map((g) => miles(TOWNS[g], a))
     const rows = [
@@ -248,14 +249,14 @@
       ['Type', a.t],
       ['Pop. (2010)', fmt(a.p)],
       ['Area', `${a.a} sq mi`],
-      ['Your check', game.won ? `${n}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`],
+      ['Your score', game.won ? `${n}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`],
     ]
     if (best.length) rows.push(['Closest miss', `${Math.min(...best).toFixed(1)} mi`])
     $('#facts').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')
     drawMap()
     const daily = game.mode === 'daily'
-    $('#share-btn').textContent = daily ? 'Share your check' : 'Back to today'
-    $('#refill-btn').textContent = daily ? 'Free refill' : 'Another refill'
+    $('#share-btn').textContent = daily ? 'Share' : 'Back to today'
+    $('#refill-btn').textContent = daily ? 'Practice' : 'Another one'
   }
 
   /* ── input & suggestions ───────────────────────────────── */
@@ -277,11 +278,11 @@
     if (!q.trim()) { closeList(); return }
     list.replaceChildren()
     if (!suggestions.length) {
-      list.appendChild(el('li', 'none', 'No town by that name on the menu.'))
+      list.appendChild(el('li', 'none', 'No matches.'))
     } else {
       suggestions.forEach((i, k) => {
         const t = TOWNS[i]
-        const li = el('li', game.guesses.includes(i) ? 'used' : '', `<b>${highlight(t.s, q)}</b><span>${esc(t.t)} · ${esc(t.c)} Co.</span>`)
+        const li = el('li', game.guesses.includes(i) ? 'used' : '', `<b>${highlight(t.s, q)}</b><span>${esc(t.t)}, ${esc(t.c)} Co.</span>`)
         li.id = `sug-${k}`
         li.setAttribute('role', 'option')
         li.setAttribute('aria-selected', k === active ? 'true' : 'false')
@@ -331,8 +332,8 @@
       const s = search(input.value)
       if (s.length === 1) i = s[0]
     }
-    if (i == null) { reject(input.value.trim() ? 'Pick a town from the list, hon.' : 'Type a town to order.'); return }
-    if (game.guesses.includes(i)) { reject('You already ordered that one.'); return }
+    if (i == null) { reject(input.value.trim() ? 'Pick a town from the list.' : 'Type a town name.'); return }
+    if (game.guesses.includes(i)) { reject('Already guessed.'); return }
 
     game.guesses.push(i)
     selected = null
@@ -373,26 +374,25 @@
   }
 
   /* ── share ─────────────────────────────────────────────── */
-  const shareText = () => {
-    const a = TOWNS[game.answer]
-    const lines = game.guesses.map((gi) => {
-      if (gi === game.answer) return '🟩🟩🟩🟩🟩 🍽️'
-      const pct = proximity(miles(TOWNS[gi], a))
-      const full = Math.floor(pct / 20), half = pct - full * 20 >= 10 ? 1 : 0
-      return '🟩'.repeat(full) + '🟨'.repeat(half) + '⬜'.repeat(5 - full - half) + ' ' + ARROWS[octant(bearing(TOWNS[gi], a))]
+  const shareText = (g) => {
+    const a = TOWNS[g.answer]
+    const lines = g.guesses.map((gi) => {
+      if (gi === g.answer) return '🟦🟦🟦🟦🟦 🏛️'
+      const full = Math.round(proximity(miles(TOWNS[gi], a)) / 20)
+      return '🟦'.repeat(full) + '⬜'.repeat(5 - full) + ' ' + ARROWS[octant(bearing(TOWNS[gi], a))]
     })
-    const score = game.won ? game.guesses.length : 'X'
+    const score = g.won ? g.guesses.length : 'X'
     const url = location.href.split(/[?#]/)[0]
-    return `Townie No. ${game.no} · ${score}/${MAX_GUESSES}${game.hard ? '*' : ''}\nThe Daily Jersey Special\n\n${lines.join('\n')}\n\n${url}`
+    return `Townie #${g.no} ${score}/${MAX_GUESSES}${g.hard ? '*' : ''}\n\n${lines.join('\n')}\n\n${url}`
   }
-  const share = async () => {
-    const text = shareText()
+  const share = async (g = game) => {
+    const text = shareText(g)
     const touch = matchMedia('(pointer: coarse)').matches
     if (touch && navigator.share) {
       try { await navigator.share({ text }); return } catch (e) { if (e.name === 'AbortError') return }
     }
-    try { await navigator.clipboard.writeText(text); toast('Check copied. Paste it anywhere.') }
-    catch (e) { prompt('Copy your check:', text) }
+    try { await navigator.clipboard.writeText(text); toast('Copied to clipboard.') }
+    catch (e) { prompt('Copy your result:', text) }
   }
 
   /* ── stats (guest check) ───────────────────────────────── */
@@ -407,8 +407,10 @@
     const max = Math.max(1, ...rows.map((r) => r[1]))
     $('#dist').innerHTML = rows.map(([k, v, hot]) =>
       `<div class="dist-row${hot ? ' today' : ''}"><span>${k}</span><span class="dist-bar" style="width:${Math.max(8, (v / max) * 100)}%">${v}</span></div>`).join('')
+    $('#stats-share').hidden = !(todays && todays.over)
     showDialog('#dlg-stats')
   }
+  $('#stats-share').addEventListener('click', () => share(dailyGame()))
 
   /* ── dialogs, toast, settings ──────────────────────────── */
   const showDialog = (sel) => {
@@ -468,13 +470,13 @@
       today = now
       settleStreak()
       drawMeta()
-      if (game.mode === 'daily') { start(dailyGame()); toast('A fresh special just came out of the kitchen.') }
+      if (game.mode === 'daily') { start(dailyGame()); toast('A new town is up.') }
     }
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) tick() })
 
   const drawMeta = () => {
-    $('#meta-no').textContent = `No. ${String(today).padStart(3, '0')}`
+    $('#meta-no').textContent = `#${today}`
     $('#meta-date').textContent = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short', month: 'short', day: 'numeric' }).format(new Date())
   }
 
@@ -485,7 +487,7 @@
     input.value = ''
     input.disabled = false
     $('#mode-tag').hidden = game.mode !== 'practice'
-    $('#special-title').textContent = game.mode === 'practice' ? 'Free Refill' : 'Today’s Special'
+    $('#special-title').textContent = game.mode === 'practice' ? 'Practice' : 'Today’s Special'
     drawPlate(true)
     drawRows()
     drawTip()

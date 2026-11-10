@@ -3,30 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Townie · The Daily Jersey Special</title>
-  <meta name="description" content="A daily New Jersey town guessing game. One mystery municipality from all 564, six guesses, served fresh at midnight.">
-  <meta name="theme-color" content="#f4ecdc" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#121517" media="(prefers-color-scheme: dark)">
-  <meta property="og:title" content="Townie · The Daily Jersey Special">
-  <meta property="og:description" content="Guess today's New Jersey town from its outline. Six tries. Fresh at midnight.">
+  <title>Townie, the New Jersey town game</title>
+  <meta name="description" content="Guess the New Jersey town from its outline. A new one every day, six guesses.">
+  <meta name="theme-color" content="#1c4d9c">
+  <meta property="og:title" content="Townie">
+  <meta property="og:description" content="Guess the New Jersey town from its outline. A new one every day.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Yellowtail&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Commissioner:FLAR,wght@0..100,400..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css">
   <script>
-    // apply saved theme before paint
     try { var s = JSON.parse(localStorage.getItem('townie:v1') || '{}'); if (s.settings && s.settings.theme && s.settings.theme !== 'auto') document.documentElement.dataset.theme = s.settings.theme } catch (e) {}
   </script>
 </head>
 <body>
   <a class="skip" href="#guess-input">Skip to guess</a>
+  <div class="key" aria-hidden="true"></div>
 
   <header class="topbar">
     <button class="icon-btn" id="btn-help" aria-label="How to play" title="How to play">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.3-2.7 4"/><circle cx="12" cy="17.6" r=".6" class="fill"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.3-2.7 4"/><circle cx="12" cy="17.6" r=".7" class="fill"/></svg>
     </button>
-    <p class="topbar-meta"><span id="meta-no">No. —</span><span aria-hidden="true"> · </span><span id="meta-date"></span></p>
+    <p class="topbar-meta"><span id="meta-no"></span> <span id="meta-date"></span></p>
     <div class="topbar-right">
       <button class="icon-btn" id="btn-stats" aria-label="Statistics" title="Statistics">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>
@@ -37,92 +36,86 @@
     </div>
   </header>
 
-  <main class="menu" id="menu">
+  <main class="page">
     <div class="masthead">
-      <p class="est">Est. 2026 · Open 24 Hours</p>
-      <h1 class="neon"><span class="neon-word">Townie</span></h1>
-      <p class="kicker"><span>The Daily</span> <span class="kicker-mid">Jersey</span> <span>Special</span></p>
-      <div class="checker" aria-hidden="true"></div>
+      <svg class="column" viewBox="0 0 40 120" aria-hidden="true"><use href="#ionic"/></svg>
+      <div class="mast-words">
+        <h1 class="wordmark" aria-label="Townie">TΘWNIΣ</h1>
+        <p class="mast-sub">The New Jersey town game</p>
+      </div>
+      <svg class="column" viewBox="0 0 40 120" aria-hidden="true"><use href="#ionic"/></svg>
     </div>
 
     <section class="special" aria-labelledby="special-title">
-      <div class="section-head">
-        <h2 id="special-title">Today’s Special</h2>
-        <span class="mode-tag" id="mode-tag" hidden>Free Refill · Practice</span>
-      </div>
+      <h2 class="head" id="special-title">Today’s Special</h2>
+      <p class="mode-tag" id="mode-tag" hidden>Practice round. Doesn’t count toward your stats.</p>
       <figure class="plate-wrap">
         <div class="plate">
-          <svg id="silhouette" class="silhouette" role="img" aria-label="Outline of today’s mystery New Jersey municipality"></svg>
+          <svg id="silhouette" class="silhouette" role="img" aria-label="Outline of today’s mystery town"></svg>
         </div>
         <figcaption class="scale" id="scale">
           <span class="scale-bar" id="scale-bar"></span>
           <span class="scale-label" id="scale-label"></span>
         </figcaption>
       </figure>
-      <p class="special-sub">One of 564 New Jersey municipalities. Name it in six.</p>
     </section>
 
     <section class="orders" aria-labelledby="orders-title">
-      <div class="section-head">
-        <h2 id="orders-title">Your Order</h2>
-        <span class="col-heads" aria-hidden="true"><span>Miles</span><span>Way</span><span>Close</span></span>
+      <div class="orders-head">
+        <h2 class="head" id="orders-title">Your Guesses</h2>
+        <span class="col-heads" aria-hidden="true"><span>Miles</span><span></span><span>Close</span></span>
       </div>
       <ol class="order-list" id="order-list" aria-live="polite"></ol>
       <p class="tip" id="tip" hidden></p>
     </section>
 
     <form class="order-pad" id="order-pad" autocomplete="off">
-      <label for="guess-input" class="pad-label">Order a town</label>
+      <label for="guess-input" class="visually-hidden">Guess a town</label>
       <div class="pad-row">
         <div class="combo">
           <input id="guess-input" type="text" inputmode="search" spellcheck="false"
-                 placeholder="Start typing… e.g. Hoboken"
+                 placeholder="Type a town"
                  role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions">
-          <ul class="suggestions" id="suggestions" role="listbox" hidden></ul>
         </div>
-        <button class="btn btn-red" type="submit" id="guess-btn">Order&nbsp;up</button>
+        <button class="btn btn-blue" type="submit" id="guess-btn">Guess</button>
+        <ul class="suggestions" id="suggestions" role="listbox" hidden></ul>
       </div>
     </form>
 
     <section class="reveal" id="reveal" hidden aria-live="polite">
-      <div class="reveal-head">
-        <p class="reveal-verdict" id="reveal-verdict"></p>
-        <h2 class="reveal-name" id="reveal-name"></h2>
-      </div>
+      <p class="reveal-verdict" id="reveal-verdict"></p>
+      <h2 class="reveal-name" id="reveal-name"></h2>
       <div class="reveal-body">
-        <svg id="nj-map" class="nj-map" role="img" aria-label="Map of New Jersey showing today’s town and your guesses"></svg>
+        <svg id="nj-map" class="nj-map" role="img" aria-label="Map of New Jersey with the answer and your guesses"></svg>
         <dl class="facts" id="facts"></dl>
       </div>
       <div class="reveal-actions">
-        <button class="btn btn-red" id="share-btn" type="button">Share your check</button>
-        <button class="btn btn-ghost" id="refill-btn" type="button">Free refill</button>
+        <button class="btn btn-blue" id="share-btn" type="button">Share</button>
+        <button class="btn btn-line" id="refill-btn" type="button">Practice</button>
       </div>
-      <p class="next" id="next-wrap">Next special in <time id="countdown">--:--:--</time></p>
+      <p class="next">Next town in <time id="countdown">--:--:--</time></p>
     </section>
   </main>
 
   <footer class="foot">
-    <p>Boundaries: NJOGIS Municipal Boundaries of NJ · Population: 2010 Census · Distances measured centre to centre.</p>
+    <p class="serve">We are happy to serve you</p>
+    <p class="credits">Town boundaries from NJOGIS. Population from the 2010 Census. Distances are measured between town centers.</p>
   </footer>
+  <div class="key key-bottom" aria-hidden="true"></div>
 
-  <!-- How to play -->
   <dialog class="sheet" id="dlg-help" aria-labelledby="help-title">
     <form method="dialog" class="sheet-close"><button aria-label="Close">×</button></form>
-    <h2 id="help-title" class="sheet-title">How to order</h2>
-    <ol class="howto">
-      <li><b>Study the plate.</b> It’s the outline of one of New Jersey’s 564 municipalities: every city, town, borough, township and village. North is up, and the bar under the plate shows the scale.</li>
-      <li><b>Order a town.</b> Start typing and pick from the list. Duplicate names like the six Washington Townships are labelled by county.</li>
-      <li><b>Read the check.</b> Each miss tells you how many miles off you are, which way to head, and how close you are (100% is a bullseye).</li>
-      <li><b>Ask your server.</b> After three misses your server tips you off to the county. After five you also get the town type and population.</li>
-    </ol>
+    <h2 id="help-title" class="sheet-title">How to play</h2>
+    <p>The plate shows the outline of one of New Jersey’s 564 towns. North is up. You get six guesses.</p>
+    <p>After each guess you’ll see how far away the answer is, which direction it is, and how close you are.</p>
     <div class="howto-example" aria-hidden="true">
-      <div class="row ex"><span class="no">1</span><span class="item"><b>Princeton</b><small>Borough · Mercer Co.</small></span><span class="leader"></span><span class="miles">31<small>mi</small></span><span class="dir"><svg viewBox="0 0 24 24" style="transform:rotate(20deg)"><path d="M12 3l5 9h-3.2v9h-3.6v-9H7z"/></svg></span><span class="pct">81%</span></div>
+      <div class="row"><span class="no">I</span><span class="item"><b>Princeton</b><small>Borough, Mercer Co.</small></span><span class="leader"></span><span class="miles">31</span><span class="dir"><svg viewBox="0 0 24 24" style="transform:rotate(20deg)"><path d="M12 3l5 9h-3.2v9h-3.6v-9H7z"/></svg></span><span class="pct">81%</span></div>
     </div>
-    <p class="sheet-foot">A new special is served every day at midnight Eastern. Everyone gets the same town.</p>
-    <form method="dialog"><button class="btn btn-red btn-wide" autofocus>Let’s eat</button></form>
+    <p>Miss three times and you’ll get the county. Miss five and you’ll get the town type and population.</p>
+    <p class="sheet-foot">A new town every day at midnight Eastern.</p>
+    <form method="dialog"><button class="btn btn-blue btn-wide" autofocus>Start</button></form>
   </dialog>
 
-  <!-- Stats: guest check -->
   <dialog class="sheet check" id="dlg-stats" aria-labelledby="stats-title">
     <form method="dialog" class="sheet-close"><button aria-label="Close">×</button></form>
     <div class="check-head">
@@ -132,28 +125,41 @@
     <div class="check-grid" id="stat-grid"></div>
     <h3 class="check-sub">Guesses per win</h3>
     <div class="dist" id="dist"></div>
-    <p class="check-thanks">Thank you · Come again</p>
+    <button class="btn btn-blue btn-wide" id="stats-share" type="button" hidden>Share</button>
   </dialog>
 
-  <!-- Settings -->
   <dialog class="sheet" id="dlg-settings" aria-labelledby="settings-title">
     <form method="dialog" class="sheet-close"><button aria-label="Close">×</button></form>
-    <h2 id="settings-title" class="sheet-title">House rules</h2>
+    <h2 id="settings-title" class="sheet-title">Settings</h2>
     <fieldset class="seg">
-      <legend>Lighting</legend>
+      <legend>Theme</legend>
       <label><input type="radio" name="theme" value="auto"><span>Auto</span></label>
-      <label><input type="radio" name="theme" value="light"><span>Day</span></label>
-      <label><input type="radio" name="theme" value="dark"><span>Late night</span></label>
+      <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
     </fieldset>
     <fieldset class="seg">
-      <legend>Server’s tips</legend>
+      <legend>Hints</legend>
       <label><input type="radio" name="tips" value="on"><span>On</span></label>
       <label><input type="radio" name="tips" value="off"><span>Off (hard mode)</span></label>
     </fieldset>
-    <p class="sheet-foot">Your stats are saved in this browser only.</p>
+    <p class="sheet-foot">Stats are saved in this browser.</p>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ionic column, drawn once -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ionic" viewBox="0 0 40 120">
+      <path d="M2 6h36v5H2z"/>
+      <path d="M6 12h28v4H6z"/>
+      <circle cx="7" cy="17" r="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="33" cy="17" r="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="7" cy="17" r="1.6"/><circle cx="33" cy="17" r="1.6"/>
+      <path d="M9 24h22v3H9z"/>
+      <path d="M10 29h3v74h-3zM16 29h3v74h-3zM21 29h3v74h-3zM27 29h3v74h-3z"/>
+      <path d="M8 104h24v4H8zM5 109h30v4H5zM2 114h36v5H2z"/>
+    </symbol>
+  </svg>
 
   <script src="data/towns.js"></script>
   <script src="assets/game.js"></script>
