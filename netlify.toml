@@ -1,0 +1,21 @@
+# Static site: no build step, publish the repo root.
+[build]
+  publish = "."
+
+# Town data and assets change rarely; the page itself should always be fresh
+# so a new day's puzzle logic is picked up immediately.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
